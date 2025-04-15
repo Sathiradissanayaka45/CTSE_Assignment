@@ -1,0 +1,28 @@
+{
+    "name": "auth-service",
+    "version": "1.0.0",
+    "description": "Authentication microservice for e-commerce platform",
+    "main": "src/server.js",
+    "scripts": {
+      "start": "node src/server.js",
+      "dev": "nodemon src/server.js",
+      "test": "jest --coverage"
+    },
+    "keywords": ["authentication", "microservice", "jwt"],
+    "author": "Your Name",
+    "license": "MIT",
+    "dependencies": {
+      "express": "^4.18.2",
+      "jsonwebtoken": "^9.0.0",
+      "bcryptjs": "^2.4.3",
+      "mongoose": "^7.0.0",
+      "dotenv": "^16.0.3",
+      "cors": "^2.8.5"
+    },
+    "devDependencies": {
+      "jest": "^29.5.0",
+      "nodemon": "^2.0.20",
+      "supertest": "^6.3.3"
+    }
+  }
+  
