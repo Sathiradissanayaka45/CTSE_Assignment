@@ -12,9 +12,9 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=3000
-      - MONGODB_URI=mongodb://mongodb:27017/auth-service
-      - JWT_SECRET=your_jwt_secret_key_here
-      - JWT_REFRESH_SECRET=your_refresh_token_secret_here
+      - MONGODB_URI=mongodb+srv://sathira:dilshara224@universitytimetable.tydk7eb.mongodb.net/universityTimeTable_db?retryWrites=true&w=majority
+      - JWT_SECRET=fdab12533795d6b429e3e94ac7ebae3d0488578e13cda4c1aac6ea68b31e9299
+      - JWT_REFRESH_SECRET=8151a689124116f6dfd1d925ff90814a36a89dde5d05ac2db113121b7f1ff420c56db0269b91cba53e2d58dc184ec6f0da557337cc2d7d521c95ba562682f8c9
       - JWT_EXPIRE=15m
       - REFRESH_TOKEN_EXPIRE=7d
     depends_on:
@@ -34,8 +34,8 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=3001
-      - MONGODB_URI=mongodb://mongodb:27017/catalog-service
-      - JWT_SECRET=your_jwt_secret_key_here
+      - MONGODB_URI=mongodb+srv://sathira:dilshara224@universitytimetable.tydk7eb.mongodb.net/universityTimeTable_db?retryWrites=true&w=majority
+      - JWT_SECRET=fdab12533795d6b429e3e94ac7ebae3d0488578e13cda4c1aac6ea68b31e9299
     depends_on:
       - mongodb
     restart: unless-stopped
