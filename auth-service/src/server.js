@@ -1,26 +1,19 @@
-const express = require('express');
-const cors = require('cors');
+require('dotenv').config();
+const app = require('./app');
+const connectDB = require('./config/db.config');
 
-// Initialize express app
-const app = express();
-const PORT = process.env.PORT || 3000;
-
-// Middleware
-app.use(cors());
-app.use(express.json());
-
-// Routes
-app.get('/', (req, res) => {
-  res.status(200).json({
-    service: 'Authentication Service',
-    status: 'active',
-    version: '1.0.0'
-  });
-});
+// Connect to MongoDB
+connectDB();
 
 // Start server
-app.listen(PORT, () => {
-  console.log(`Auth Service running on port ${PORT}`);
+const PORT = process.env.PORT || 3000;
+const server = app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
 
-module.exports = app;
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (err, promise) => {
+  console.log(`Error: ${err.message}`);
+  // Close server & exit process
+  server.close(() => process.exit(1));
+});
