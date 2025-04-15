@@ -1,26 +1,32 @@
-const express = require('express');
-const cors = require('cors');
-
-// Initialize express app
-const app = express();
-const PORT = process.env.PORT || 3001;
-
-// Middleware
-app.use(cors());
-app.use(express.json());
-
-// Routes
-app.get('/', (req, res) => {
-  res.status(200).json({
-    service: 'Product Catalog Service',
-    status: 'active',
-    version: '1.0.0'
-  });
-});
+require('dotenv').config();
+const app = require('./app');
+const connectDB = require('./config/db.config');
 
 // Start server
-app.listen(PORT, () => {
-  console.log(`Catalog Service running on port ${PORT}`);
+const PORT = process.env.PORT || 3001;
+
+const startServer = async () => {
+  // Connect to MongoDB
+  await connectDB();
+  
+  app.listen(PORT, () => {
+    console.log(`Product Catalog Service running on port ${PORT}`);
+  });
+};
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (err) => {
+  console.log('UNHANDLED REJECTION! 💥 Shutting down...');
+  console.log(err.name, err.message);
+  process.exit(1);
 });
 
-module.exports = app;
+// Handle uncaught exceptions
+process.on('uncaughtException', (err) => {
+  console.log('UNCAUGHT EXCEPTION! 💥 Shutting down...');
+  console.log(err.name, err.message);
+  process.exit(1);
+});
+
+// Start the server
+startServer();
