@@ -1,22 +1,62 @@
 version: '3.8'
 
 services:
+  # Authentication Service
+  auth-service:
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    container_name: auth-service
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - MONGODB_URI=mongodb://mongodb:27017/auth-service
+      - JWT_SECRET=your_jwt_secret_key_here
+      - JWT_REFRESH_SECRET=your_refresh_token_secret_here
+      - JWT_EXPIRE=15m
+      - REFRESH_TOKEN_EXPIRE=7d
+    depends_on:
+      - mongodb
+    restart: unless-stopped
+    networks:
+      - microservices-network
+
+  # Product Catalog Service
   catalog-service:
-    build: ./catalog-service
+    build:
+      context: ./catalog-service
+      dockerfile: Dockerfile
+    container_name: catalog-service
     ports:
       - "3001:3001"
     environment:
+      - NODE_ENV=development
+      - PORT=3001
       - MONGODB_URI=mongodb://mongodb:27017/catalog-service
-      - JWT_SECRET=dev_jwt_secret
+      - JWT_SECRET=your_jwt_secret_key_here
     depends_on:
       - mongodb
+    restart: unless-stopped
+    networks:
+      - microservices-network
 
+  # MongoDB Database (shared by both services)
   mongodb:
     image: mongo:6
+    container_name: mongodb
     ports:
       - "27017:27017"
     volumes:
       - mongodb-data:/data/db
+    restart: unless-stopped
+    networks:
+      - microservices-network
+
+networks:
+  microservices-network:
+    driver: bridge
 
 volumes:
   mongodb-data:
