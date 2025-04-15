@@ -3,13 +3,9 @@ FROM node:18-alpine
 WORKDIR /app
 
 COPY package*.json ./
-
-RUN npm ci
+RUN npm install
 
 COPY . .
 
-USER node
-
-EXPOSE 3001
-
-CMD ["npm", "start"]
+EXPOSE 3002
+CMD ["node", "src/index.js"]
