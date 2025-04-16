@@ -1,0 +1,123 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Task definitions for microservices'
+
+Parameters:
+  NetworkStackName:
+    Type: String
+    Default: microservices-network
+    Description: Name of the stack with network resources
+  
+  ClusterStackName:
+    Type: String
+    Default: microservices-ecs-cluster
+    Description: Name of the stack with ECS resources
+  
+  AuthServiceImage:
+    Type: String
+    Description: ECR repository URI for auth-service
+  
+  CatalogServiceImage:
+    Type: String
+    Description: ECR repository URI for catalog-service
+
+Resources:
+  # Auth Service Task Definition
+  AuthServiceTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: auth-service
+      RequiresCompatibilities:
+        - FARGATE
+      NetworkMode: awsvpc
+      Cpu: '256'
+      Memory: '512'
+      ExecutionRoleArn: !ImportValue 
+        Fn::Sub: "${ClusterStackName}-ECSTaskExecutionRoleArn"
+      ContainerDefinitions:
+        - Name: auth-service
+          Image: !Ref AuthServiceImage
+          Essential: true
+          PortMappings:
+            - ContainerPort: 3000
+              HostPort: 3000
+              Protocol: tcp
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref AuthServiceLogGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: auth-service
+          Environment:
+            - Name: NODE_ENV
+              Value: production
+            - Name: PORT
+              Value: '3000'
+            - Name: JWT_SECRET
+              Value: 'fdab12533795d6b429e3e94ac7ebae3d0488578e13cda4c1aac6ea68b31e9299'
+            - Name: JWT_REFRESH_SECRET
+              Value: '8151a689124116f6dfd1d925ff90814a36a89dde5d05ac2db113121b7f1ff420c56db0269b91cba53e2d58dc184ec6f0da557337cc2d7d521c95ba562682f8c9'
+            - Name: MONGODB_URI
+              Value: 'mongodb+srv://sathira:dilshara224@universitytimetable.tydk7eb.mongodb.net/universityTimeTable_db?retryWrites=true&w=majority'
+
+  # Auth Service Log Group
+  AuthServiceLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /ecs/auth-service
+      RetentionInDays: 30
+
+  # Catalog Service Task Definition
+  CatalogServiceTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: catalog-service
+      RequiresCompatibilities:
+        - FARGATE
+      NetworkMode: awsvpc
+      Cpu: '256'
+      Memory: '512'
+      ExecutionRoleArn: !ImportValue 
+        Fn::Sub: "${ClusterStackName}-ECSTaskExecutionRoleArn"
+      ContainerDefinitions:
+        - Name: catalog-service
+          Image: !Ref CatalogServiceImage
+          Essential: true
+          PortMappings:
+            - ContainerPort: 3001
+              HostPort: 3001
+              Protocol: tcp
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref CatalogServiceLogGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: catalog-service
+          Environment:
+            - Name: NODE_ENV
+              Value: production
+            - Name: PORT
+              Value: '3001'
+            - Name: JWT_SECRET
+              Value: 'fdab12533795d6b429e3e94ac7ebae3d0488578e13cda4c1aac6ea68b31e9299'
+            - Name: MONGODB_URI
+              Value: 'mongodb+srv://sathira:dilshara224@universitytimetable.tydk7eb.mongodb.net/universityTimeTable_db?retryWrites=true&w=majority'
+
+  # Catalog Service Log Group
+  CatalogServiceLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /ecs/catalog-service
+      RetentionInDays: 30
+
+Outputs:
+  AuthServiceTaskDefinition:
+    Description: The Auth Service task definition
+    Value: !Ref AuthServiceTaskDefinition
+    Export:
+      Name: !Sub "${AWS::StackName}-AuthServiceTaskDefinition"
+
+  CatalogServiceTaskDefinition:
+    Description: The Catalog Service task definition
+    Value: !Ref CatalogServiceTaskDefinition
+    Export:
+      Name: !Sub "${AWS::StackName}-CatalogServiceTaskDefinition"

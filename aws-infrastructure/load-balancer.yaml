@@ -1,0 +1,130 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Load balancer for microservices'
+
+Parameters:
+  NetworkStackName:
+    Type: String
+    Default: microservices-network
+    Description: Name of the stack with network resources
+
+Resources:
+  # Application Load Balancer
+  MicroservicesLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: microservices-alb
+      Scheme: internet-facing
+      SecurityGroups:
+        - Fn::ImportValue: !Sub "${NetworkStackName}-LoadBalancerSecurityGroup"
+      Subnets:
+        - Fn::ImportValue: !Sub "${NetworkStackName}-PublicSubnet1"
+        - Fn::ImportValue: !Sub "${NetworkStackName}-PublicSubnet2"
+      IpAddressType: ipv4
+      Type: application
+
+  # Default Target Group
+  DefaultTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: default-tg
+      VpcId:
+        Fn::ImportValue: !Sub "${NetworkStackName}-VpcId"
+      Port: 80
+      Protocol: HTTP
+      TargetType: ip
+      HealthCheckPath: /
+      HealthCheckIntervalSeconds: 30
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 3
+      UnhealthyThresholdCount: 3
+
+  # Auth Service Target Group
+  AuthServiceTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: auth-service-tg
+      VpcId:
+        Fn::ImportValue: !Sub "${NetworkStackName}-VpcId"
+      Port: 3000
+      Protocol: HTTP
+      TargetType: ip
+      HealthCheckPath: /
+      HealthCheckIntervalSeconds: 30
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 3
+      UnhealthyThresholdCount: 3
+
+  # Catalog Service Target Group
+  CatalogServiceTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: catalog-service-tg
+      VpcId:
+        Fn::ImportValue: !Sub "${NetworkStackName}-VpcId"
+      Port: 3001
+      Protocol: HTTP
+      TargetType: ip
+      HealthCheckPath: /
+      HealthCheckIntervalSeconds: 30
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 3
+      UnhealthyThresholdCount: 3
+
+  # Default Listener
+  HttpListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref MicroservicesLoadBalancer
+      Port: 80
+      Protocol: HTTP
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref DefaultTargetGroup
+
+  # Auth Service Listener Rule
+  AuthServiceListenerRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      ListenerArn: !Ref HttpListener
+      Priority: 1
+      Conditions:
+        - Field: path-pattern
+          Values:
+            - /api/auth*
+      Actions:
+        - Type: forward
+          TargetGroupArn: !Ref AuthServiceTargetGroup
+
+  # Catalog Service Listener Rule
+  CatalogServiceListenerRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      ListenerArn: !Ref HttpListener
+      Priority: 2
+      Conditions:
+        - Field: path-pattern
+          Values:
+            - /api/products*
+            - /api/categories*
+      Actions:
+        - Type: forward
+          TargetGroupArn: !Ref CatalogServiceTargetGroup
+
+Outputs:
+  LoadBalancerDNS:
+    Description: The DNS name of the load balancer
+    Value: !GetAtt MicroservicesLoadBalancer.DNSName
+    Export:
+      Name: !Sub "${AWS::StackName}-LoadBalancerDNS"
+
+  AuthServiceTargetGroupArn:
+    Description: The ARN of the auth service target group
+    Value: !Ref AuthServiceTargetGroup
+    Export:
+      Name: !Sub "${AWS::StackName}-AuthServiceTargetGroupArn"
+
+  CatalogServiceTargetGroupArn:
+    Description: The ARN of the catalog service target group
+    Value: !Ref CatalogServiceTargetGroup
+    Export:
+      Name: !Sub "${AWS::StackName}-CatalogServiceTargetGroupArn"

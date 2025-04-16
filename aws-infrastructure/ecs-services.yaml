@@ -1,0 +1,74 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'ECS Services for microservices'
+
+Parameters:
+  NetworkStackName:
+    Type: String
+    Default: microservices-network
+    Description: Name of the stack with network resources
+
+  ClusterStackName:
+    Type: String
+    Default: microservices-ecs-cluster
+    Description: Name of the stack with ECS resources
+
+  TaskDefStackName:
+    Type: String
+    Default: microservices-task-defs
+    Description: Name of the stack with task definitions
+
+  LoadBalancerStackName:
+    Type: String
+    Default: microservices-load-balancer
+    Description: Name of the stack with load balancer resources
+
+Resources:
+  # Auth Service
+  AuthService:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: auth-service
+      Cluster:
+        Fn::ImportValue: !Sub "${ClusterStackName}-ClusterName"
+      TaskDefinition:
+        Fn::ImportValue: !Sub "${TaskDefStackName}-AuthServiceTaskDefinition"
+      DesiredCount: 1
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups:
+            - Fn::ImportValue: !Sub "${NetworkStackName}-ECSTasksSecurityGroup"
+          Subnets:
+            - Fn::ImportValue: !Sub "${NetworkStackName}-PublicSubnet1"
+            - Fn::ImportValue: !Sub "${NetworkStackName}-PublicSubnet2"
+      LoadBalancers:
+        - ContainerName: auth-service
+          ContainerPort: 3000
+          TargetGroupArn: 
+            Fn::ImportValue: !Sub "${LoadBalancerStackName}-AuthServiceTargetGroupArn"
+
+  # Catalog Service
+  CatalogService:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: catalog-service
+      Cluster:
+        Fn::ImportValue: !Sub "${ClusterStackName}-ClusterName"
+      TaskDefinition:
+        Fn::ImportValue: !Sub "${TaskDefStackName}-CatalogServiceTaskDefinition"
+      DesiredCount: 1
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups:
+            - Fn::ImportValue: !Sub "${NetworkStackName}-ECSTasksSecurityGroup"
+          Subnets:
+            - Fn::ImportValue: !Sub "${NetworkStackName}-PublicSubnet1"
+            - Fn::ImportValue: !Sub "${NetworkStackName}-PublicSubnet2"
+      LoadBalancers:
+        - ContainerName: catalog-service
+          ContainerPort: 3001
+          TargetGroupArn: 
+            Fn::ImportValue: !Sub "${LoadBalancerStackName}-CatalogServiceTargetGroupArn"

@@ -1,0 +1,154 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'ECS Services for microservices'
+
+Parameters:
+  NetworkStackName:
+    Type: String
+    Default: microservices-network
+    Description: Name of the stack with network resources
+
+  ClusterStackName:
+    Type: String
+    Default: microservices-ecs-cluster
+    Description: Name of the stack with ECS resources
+
+  TaskDefStackName:
+    Type: String
+    Default: microservices-task-defs
+    Description: Name of the stack with task definitions
+
+  LoadBalancerStackName:
+    Type: String
+    Default: microservices-load-balancer
+    Description: Name of the stack with load balancer resources
+
+Resources:
+  # Auth Service
+  AuthService:
+    Type: AWS::ECS::Service
+    DependsOn: LoadBalancerListener
+    Properties:
+      ServiceName: auth-service
+      Cluster:
+        Fn::ImportValue: !Sub "${ClusterStackName}-ClusterName"
+      TaskDefinition:
+        Fn::ImportValue: !Sub "${TaskDefStackName}-AuthServiceTaskDefinition"
+      DesiredCount: 1
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups:
+            - Fn::ImportValue: !Sub "${NetworkStackName}-ECSTasksSecurityGroup"
+          Subnets:
+            - Fn::ImportValue: !Sub "${NetworkStackName}-PublicSubnet1"
+            - Fn::ImportValue: !Sub "${NetworkStackName}-PublicSubnet2"
+      LoadBalancers:
+        - ContainerName: auth-service
+          ContainerPort: 3000
+          TargetGroupArn: 
+            Fn::ImportValue: !Sub "${LoadBalancerStackName}-AuthServiceTargetGroupArn"
+
+  # Catalog Service
+  CatalogService:
+    Type: AWS::ECS::Service
+    DependsOn: LoadBalancerListener
+    Properties:
+      ServiceName: catalog-service
+      Cluster:
+        Fn::ImportValue: !Sub "${ClusterStackName}-ClusterName"
+      TaskDefinition:
+        Fn::ImportValue: !Sub "${TaskDefStackName}-CatalogServiceTaskDefinition"
+      DesiredCount: 1
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups:
+            - Fn::ImportValue: !Sub "${NetworkStackName}-ECSTasksSecurityGroup"
+          Subnets:
+            - Fn::ImportValue: !Sub "${NetworkStackName}-PublicSubnet1"
+            - Fn::ImportValue: !Sub "${NetworkStackName}-PublicSubnet2"
+      LoadBalancers:
+        - ContainerName: catalog-service
+          ContainerPort: 3001
+          TargetGroupArn: 
+            Fn::ImportValue: !Sub "${LoadBalancerStackName}-CatalogServiceTargetGroupArn"
+
+  # Reference to load balancer listener to ensure the load balancer exists before creating services
+  LoadBalancerListener:
+    Type: "Custom::LoadBalancerListener"
+    Properties:
+      ServiceToken: !GetAtt LoadBalancerListenerFunction.Arn
+      LoadBalancerStackName: !Ref LoadBalancerStackName
+
+  # Lambda function to query the listener
+  LoadBalancerListenerFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: index.handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Runtime: nodejs16.x
+      Timeout: 30
+      Code:
+        ZipFile: |
+          const AWS = require('aws-sdk');
+          const cloudformation = new AWS.CloudFormation();
+          
+          exports.handler = async (event, context) => {
+            const result = {
+              Status: 'SUCCESS',
+              PhysicalResourceId: event.PhysicalResourceId || Date.now().toString(),
+              StackId: event.StackId,
+              RequestId: event.RequestId,
+              LogicalResourceId: event.LogicalResourceId
+            };
+            
+            try {
+              const stackName = event.ResourceProperties.LoadBalancerStackName;
+              await cloudformation.describeStacks({ StackName: stackName }).promise();
+              
+              // Add the response URL
+              result.Reason = 'Load balancer stack exists';
+            } catch (error) {
+              result.Status = 'FAILED';
+              result.Reason = `Error querying stack: ${error.message}`;
+            }
+            
+            return result;
+          };
+
+  # IAM role for Lambda function
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
+      Policies:
+        - PolicyName: CloudFormationDescribeAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: 'cloudformation:DescribeStacks'
+                Resource: '*'
+
+Outputs:
+  AuthServiceName:
+    Description: The name of the auth service
+    Value: !Ref AuthService
+    Export:
+      Name: !Sub "${AWS::StackName}-AuthServiceName"
+
+  CatalogServiceName:
+    Description: The name of the catalog service
+    Value: !Ref CatalogService
+    Export:
+      Name: !Sub "${AWS::StackName}-CatalogServiceName"

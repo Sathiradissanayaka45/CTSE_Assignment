@@ -1,0 +1,21 @@
+   ### Test Auth Service Base URL
+   GET http://microservices-alb-979226481.us-east-1.elb.amazonaws.com/api/auth
+   
+   ### Register a new user (Auth Service)
+   POST http://microservices-alb-979226481.us-east-1.elb.amazonaws.com/api/auth/register
+   Content-Type: application/json
+   
+   {
+     "name": "Test User",
+     "email": "test@example.com",
+     "password": "Password123!"
+   }
+   
+   ### Login user (Auth Service)
+   POST http://microservices-alb-979226481.us-east-1.elb.amazonaws.com/api/auth/login
+   Content-Type: application/json
+   
+   {
+     "email": "test@example.com",
+     "password": "Password123!"
+   }
