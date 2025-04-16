@@ -16,7 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          fetch-depth: 0  # This is important for SonarCloud to get proper git history
+          fetch-depth: 0  # Shallow clones should be disabled for better relevancy of analysis
       
       - name: Set up Node.js
         uses: actions/setup-node@v3
@@ -29,34 +29,14 @@ jobs:
         working-directory: ./auth-service
         run: npm ci
       
-      - name: Run tests
+      - name: Run tests with coverage
         working-directory: ./auth-service
         run: npm test
       
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}   # Generated in SonarCloud account
         with:
           projectBaseDir: auth-service
-  
-  build-and-push:
-    needs: build-and-test
-    if: github.event_name != 'pull_request'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      
-      - name: Login to DockerHub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-      
-      - name: Build and push
-        uses: docker/build-push-action@v4
-        with:
-          context: ./auth-service
-          push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/auth-service:latest

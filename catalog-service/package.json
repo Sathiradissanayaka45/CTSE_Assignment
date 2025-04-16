@@ -3,11 +3,11 @@
     "version": "1.0.0",
     "description": "Product catalog microservice for e-commerce platform",
     "main": "src/server.js",
-    "scripts": {
-        "start": "node src/server.js",
-        "dev": "nodemon src/server.js",
-        "test": "jest --coverage"
-    },
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "test": "jest --coverage"
+  },
     "keywords": [
         "catalog", 
         "microservice", 
