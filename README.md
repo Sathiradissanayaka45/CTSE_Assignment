@@ -102,3 +102,46 @@ The application follows a microservices architecture deployed on AWS. Below is t
    ```bash
    git clone https://github.com/your-repo/microservices-app.git
    cd microservices-app
+
+2. **Set up environment variables**:
+    - Create a `.env` file in both `auth-service` and `catalog-service` directories.
+    - Add required variables by referencing the `.env.example` files [[1]] [[2]] [[3]] [[5]] [[8]].
+
+3. **Start services**:
+    ```bash
+    docker-compose up --build
+    ```
+    - Access services locally:
+        - Authentication Service: `http://localhost:3000/api/auth`
+        - Product Catalog Service: `http://localhost:3001/api/products`
+
+## 🚀 Deployment (AWS ECS)
+**Infrastructure**: Deployed on AWS ECS using Fargate with GitHub Actions automation.
+
+**Deployment Steps**:
+1. Push changes to `main` branch
+2. GitHub Actions pipeline:
+    - Build Docker images
+    - Push images to Amazon ECR
+    - Update ECS services with new images [[3]] [[8]]
+  
+**Deployed Endpoints**:
+- Authentication Service: `http://<ALB-DNS>/api/auth`
+- Product Catalog Service: `http://<ALB-DNS>/api/products`
+
+## 🔒 Security Measures
+- **JWT Authentication**: Short-lived tokens + refresh tokens
+- **Password Hashing**: `bcrypt` for stored passwords
+- **Rate Limiting**: Enabled for login/registration endpoints [[2]] [[3]] [[8]]
+- **Secret Management**: Sensitive variables stored in `.env`/AWS Secrets Manager [[10]]
+- **RBAC**: Admin-only endpoint protection
+- **Code Analysis**: SonarCloud integrated for vulnerability detection
+
+## 🤝 Contributing
+1. Fork the repo
+2. Create feature branch: `feature/your-feature-name`
+3. Commit changes & push
+4. Create pull request
+
+## 📜 License
+- MIT License (see `LICENSE` file)
