@@ -1,7 +1,5 @@
 # 🌟 Microservices-Based Application: Authentication and Product Catalog Services 🌟
 
-![Architecture Overview](architecture-diagram.png)
-
 Welcome to the repository for our e-commerce platform's microservices! This project features two essential services: **Authentication Service** and **Product Catalog Service**. Both services are containerized, deployed on AWS ECS using Fargate, and secured with modern DevOps and DevSecOps practices. 
 
 ## 📚 Table of Contents
@@ -28,7 +26,7 @@ Both services are deployed on AWS ECS using Fargate and are accessible via an Ap
 ## 🏗️ Architecture
 The application follows a microservices architecture deployed on AWS. Below is the architecture diagram:
 
-![Architecture Diagram](architecture-diagram.png)
+![Architecture Overview](./assets/architecture-diagram.png)
 
 ### **Components**:
 - **Frontend**: A web-based interface for users to interact with the services.
