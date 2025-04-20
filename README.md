@@ -1,63 +1,104 @@
-# E-commerce Microservices Platform
+# 🌟 Microservices-Based Application: Authentication and Product Catalog Services 🌟
 
-This repository contains a microservice-based e-commerce platform with User Authentication and Product Catalog services.
+![Architecture Overview](architecture-diagram.png)
 
-## Architecture
+Welcome to the repository for our e-commerce platform's microservices! This project features two essential services: **Authentication Service** and **Product Catalog Service**. Both services are containerized, deployed on AWS ECS using Fargate, and secured with modern DevOps and DevSecOps practices. 
 
-[Brief description of the architecture with link to detailed documentation in docs folder]
+## 📚 Table of Contents
+- [Project Overview](#project-overview)
+- [Architecture](#architecture)
+- [Features](#features)
+- [Endpoints](#endpoints)
+- [Technologies Used](#technologies-used)
+- [Setup and Running Instructions](#setup-and-running-instructions)
+- [Deployment](#deployment)
+- [Security Measures](#security-measures)
+- [Images](#images)
+- [Contributing](#contributing)
+- [License](#license)
 
-## Services
+## 🚀 Project Overview
+This project demonstrates the implementation of a **secure**, **scalable**, and **containerized** microservices-based application. The two microservices are:
 
-### Authentication Service
-- User registration
-- Authentication
-- Token validation
-- User profile management
+- **Authentication Service**: Handles user registration, login, email verification, password reset, and token-based authentication using JWT.
+- **Product Catalog Service**: Manages product and category data for an e-commerce platform, including CRUD operations for products and categories.
 
-### Product Catalog Service
-- Product listings
-- Product search
-- Category management
-- Product details
+Both services are deployed on AWS ECS using Fargate and are accessible via an Application Load Balancer.
 
-## Technology Stack
+## 🏗️ Architecture
+The application follows a microservices architecture deployed on AWS. Below is the architecture diagram:
 
-- **Backend**: Node.js with Express.js
-- **Frontend**: React
-- **Database**: MongoDB
-- **Authentication**: JWT
+![Architecture Diagram](architecture-diagram.png)
+
+### **Components**:
+- **Frontend**: A web-based interface for users to interact with the services.
+- **AWS Application Load Balancer**: Routes traffic to the appropriate microservice based on the URL path.
+- **ECS Cluster**: Hosts the containerized microservices using AWS Fargate.
+- **MongoDB Atlas**: A managed NoSQL database for storing user and product data.
+
+## ✨ Features
+
+### **Authentication Service**
+- ✅ User registration with email verification.
+- 🔒 Secure login with JWT-based authentication.
+- 🔄 Password reset functionality.
+- 🔑 Token refresh mechanism.
+- 👤 Role-based access control (RBAC) for admin and customer roles.
+
+### **Product Catalog Service**
+- 📦 CRUD operations for products and categories.
+- 📊 Pagination, filtering, and sorting for product listings.
+- 🔐 Role-based access control for admin-only endpoints.
+
+## 📡 Endpoints
+
+### **Authentication Service**
+
+| Endpoint | Method | Access Role | Description | Security Features |
+|----------|--------|-------------|-------------|-------------------|
+| `/api/auth/register` | POST | Public | Register a new user. | Password hashing, input validation |
+| `/api/auth/login` | POST | Public | Login and receive access/refresh tokens. | JWT-based authentication |
+| `/api/auth/verify-email` | POST | Public | Verify user email using a token. | Token-based email verification |
+| `/api/auth/refresh-token` | POST | Public | Refresh access token using a refresh token. | Secure refresh token validation |
+| `/api/auth/logout` | POST | Public | Logout and invalidate refresh token. | Token invalidation |
+| `/api/auth/forgot-password` | POST | Public | Send password reset email. | Email-based token validation |
+| `/api/auth/reset-password` | POST | Public | Reset password using a token. | Token-based password reset |
+
+### **Product Catalog Service**
+
+| Endpoint | Method | Access Role | Description | Security Features |
+|----------|--------|-------------|-------------|-------------------|
+| `/api/products` | GET | Public | Retrieve all products with pagination. | None |
+| `/api/products/:id` | GET | Public | Retrieve a specific product by ID. | None |
+| `/api/products` | POST | Admin | Create a new product. | Role-based access control (RBAC) |
+| `/api/products/:id` | PUT | Admin | Update an existing product. | Role-based access control (RBAC) |
+| `/api/products/:id` | DELETE | Admin | Delete a product. | Role-based access control (RBAC) |
+| `/api/categories` | GET | Public | Retrieve all categories. | None |
+| `/api/categories/:id` | GET | Public | Retrieve a specific category by ID. | None |
+| `/api/categories` | POST | Admin | Create a new category. | Role-based access control (RBAC) |
+| `/api/categories/:id` | PUT | Admin | Update an existing category. | Role-based access control (RBAC) |
+| `/api/categories/:id` | DELETE | Admin | Delete a category. | Role-based access control (RBAC) |
+
+## 🛠️ Technologies Used
+- **Backend**: Node.js, Express.js
+- **Database**: MongoDB Atlas
+- **Authentication**: JSON Web Tokens (JWT)
 - **Containerization**: Docker
+- **Cloud Deployment**: AWS ECS (Fargate), Application Load Balancer
 - **CI/CD**: GitHub Actions
-- **Cloud Provider**: AWS
+- **DevSecOps**: SonarCloud for static code analysis
+- **Security**: Helmet.js, bcrypt.js, rate limiting
 
-## Development Setup
+## ⚙️ Setup and Running Instructions
 
-### Prerequisites
-- Node.js (v14+)
-- Docker and Docker Compose
-- MongoDB
+### **Prerequisites**
+- Node.js (v18 or higher)
+- Docker
+- AWS CLI configured with appropriate credentials
+- MongoDB Atlas account
 
-### Local Development
-1. Clone the repository
-2. Run `docker-compose up` to start all services
-3. Access the application at http://localhost:3000
-
-## Deployment
-
-The services are deployed using AWS ECS. See the deployment documentation in the docs folder for details.
-
-## Security Features
-
-This project implements several security best practices:
-- JWT-based authentication
-- Secure password storage with bcrypt
-- Rate limiting for login attempts
-- Role-based access control
-
-## CI/CD Pipeline
-
-This project uses GitHub Actions for continuous integration and deployment. The pipeline includes:
-- Automated testing
-- Code quality checks with SonarCloud
-- Docker image building and publishing
-- Automated deployment to AWS ECS
+### **Steps to Run Locally**
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/your-repo/microservices-app.git
+   cd microservices-app
